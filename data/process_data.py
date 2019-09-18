@@ -34,6 +34,8 @@ def clean_data(df):
         category_expand[i] = pd.to_numeric(category_expand[i].str[-1])  # convert the values to numeric
         
     df = df.assign(**category_expand)  # add the new columns into the original df
+
+    df = df.drop('categories',axis=1)  # drop the old category
     
     df = df.drop_duplicates()  # remove duplicates
     
