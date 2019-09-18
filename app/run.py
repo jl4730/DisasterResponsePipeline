@@ -10,7 +10,7 @@ from flask import render_template, request, jsonify
 from plotly.graph_objs import Bar
 from sklearn.externals import joblib
 from sqlalchemy import create_engine
-
+import plotly.graph_objs as go
 
 app = Flask(__name__)
 
@@ -37,35 +37,50 @@ model = joblib.load("../models/classifier.pkl")
 @app.route('/')
 @app.route('/index')
 def index():
-    
-    # extract data needed for visuals
-    # TODO: Below is an example - modify to extract data for your own visuals
+
+    # graph one
+    graph_one = []
+
+    df_category = df.drop(['id', 'message', 'original', 'index', 'genre'], axis=1)
+    category_names = df_category.columns
+    category_counts = df_category.sum()
+
+    graph_one.append(
+        Bar(
+            x=category_names,
+            y=category_counts
+        )
+    )
+
+    layout_one = {'title': 'Distribution of Categories',
+                  'xaxis': {'title': "Category"},
+                  'yaxis': {'title': "Count"},
+                  }
+
+    # graph two
+    graph_two = []
+
     genre_counts = df.groupby('genre').count()['message']
     genre_names = list(genre_counts.index)
-    
-    # create visuals
-    # TODO: Below is an example - modify to create your own visuals
-    graphs = [
-        {
-            'data': [
-                Bar(
-                    x=genre_names,
-                    y=genre_counts
-                )
-            ],
 
-            'layout': {
-                'title': 'Distribution of Message Genres',
-                'yaxis': {
-                    'title': "Count"
-                },
-                'xaxis': {
-                    'title': "Genre"
-                }
-            }
-        }
-    ]
-    
+    graph_two.append(
+        Bar(
+            x=genre_names,
+            y=genre_counts
+        )
+    )
+
+    layout_two = {'title': 'Distribution of Message Genres',
+                      'xaxis': {'title': "Genre" },
+                      'yaxis': {'title': "Count" },
+                  }
+
+
+    # combine
+    graphs = []
+    graphs.append(dict(data=graph_one, layout=layout_one))
+    graphs.append(dict(data=graph_two, layout=layout_two))
+
     # encode plotly graphs in JSON
     ids = ["graph-{}".format(i) for i, _ in enumerate(graphs)]
     graphJSON = json.dumps(graphs, cls=plotly.utils.PlotlyJSONEncoder)
@@ -82,7 +97,7 @@ def go():
 
     # use model to predict classification for query
     classification_labels = model.predict([query])[0]
-    classification_results = dict(zip(df.columns[4:], classification_labels))
+    classification_results = dict(zip(df.columns[5:], classification_labels))
 
     # This will render the go.html Please see that file. 
     return render_template(
