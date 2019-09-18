@@ -7,6 +7,8 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.pipeline import Pipeline
 from sklearn.multioutput import MultiOutputClassifier
 from nltk import word_tokenize, WordNetLemmatizer
+import nltk
+nltk.download()
 from sklearn.metrics import precision_recall_fscore_support
 import re
 import pickle
@@ -24,7 +26,7 @@ def load_data(database_filepath):
     engine = create_engine('sqlite:///'+database_filepath)
     df = pd.read_sql_table('DisasterResponseData', engine)
     X = df['message']
-    y = df.drop(['id', 'message', 'original','index', 'genre','categories'], axis=1) 
+    y = df.drop(['id', 'message', 'original','index', 'genre'], axis=1)
     category_names = y.columns
 
     return X, y, category_names
@@ -103,6 +105,7 @@ def main():
         model = build_model()
         
         print('Training model...')
+
         model.fit(X_train, Y_train)
         
         print('Evaluating model...')
